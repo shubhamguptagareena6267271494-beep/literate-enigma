@@ -1,150 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>AK AI Predictor 2026 v3.5</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Game with Trends</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #080b12; color: #fff; display: flex; justify-content: center; min-height: 100vh; }
-        .container {
-            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT04uCksgmV2LBQkKVXAJJ4D3mSPrxOKUmaRouZFFZOi4cH_14MhDLP6Nw&s=10');
-            background-size: cover; width: 100%; max-width: 400px; padding: 20px; position: relative; border: 2px solid #1e293b;
-        }
-        .header { text-align: center; padding: 15px; border-bottom: 2px solid #00ff00; margin-bottom: 20px; }
-        .card { background: rgba(15, 23, 42, 0.9); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid #334155; text-align: center; }
-        .period-box { color: #38bdf8; font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
-        .result-box { font-size: 2.5rem; font-weight: 800; color: #fbbf24; text-shadow: 0 0 15px rgba(251,191,36,0.4); margin: 15px 0; }
-        .confidence-bar { background: #1e293b; height: 12px; border-radius: 6px; overflow: hidden; margin: 15px 0; border: 1px solid #475569; }
-        .confidence-fill { background: linear-gradient(90deg, #ef4444, #22c55e); height: 100%; width: 0%; transition: 1.2s ease-in-out; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #3b82f6; }
-        .win-badge { background: #166534; color: #4ade80; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .loss-badge { background: #991b1b; color: #f87171; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .timer { font-size: 1.2rem; color: #00ff00; font-family: monospace; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
+        .game-card { background: #1e1e1e; padding: 20px; border-radius: 20px; display: inline-block; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* AI Prediction Box */
+        .ai-box { background: #333; padding: 10px; border-radius: 10px; margin: 15px 0; border: 1px dashed #007bff; }
+        #ai-guess { font-weight: bold; color: #00d4ff; text-transform: uppercase; }
+
+        .timer-box { font-size: 28px; color: #ffeb3b; margin: 10px 0; }
+        .balance { font-size: 20px; color: #4caf50; margin-bottom: 15px; }
+        
+        /* Buttons */
+        .btn-group button { width: 90px; height: 45px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; margin: 5px; font-size: 16px; }
+        .green { background: #4CAF50; box-shadow: 0 4px #2e7d32; }
+        .violet { background: #9C27B0; box-shadow: 0 4px #7b1fa2; }
+        .red { background: #F44336; box-shadow: 0 4px #d32f2f; }
+        .btn-group button:active { transform: translateY(2px); box-shadow: none; }
+        
+        /* Trend Table */
+        .trend-section { margin-top: 25px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; background: #252525; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 10px; text-align: center; border-bottom: 1px solid #333; }
+        th { background: #333; color: #aaa; font-size: 12px; }
+        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 style="font-size: 1.2rem; letter-spacing: 2px;">AK AI PREDICTOR V3.5</h1>
-            <div class="timer" id="timer">00:60</div>
-        </div>
 
-        <div class="card">
-            <div class="period-box" id="period-num">FETCHING PERIOD...</div>
-            <div class="result-box" id="prediction-text">---</div>
-            <div class="confidence-bar"><div class="confidence-fill" id="conf-fill"></div></div>
-            <p id="pattern-text" style="font-size: 0.8rem; color: #94a3b8;">Analyzing Server Patterns...</p>
-        </div>
+<div class="game-card">
+    <div class="balance">Wallet: ₹<span id="balance">1000</span></div>
+    
+    <div class="timer-box">Next Round: <span id="timer">30</span>s</div>
 
-        <div class="card" style="padding: 10px;">
-            <div style="display: flex; justify-content: space-around; font-size: 0.8rem;">
-                <span>Accuracy: <b id="acc-val" style="color:#00ff00">0%</b></span>
-                <span>Total: <b id="total-val">0</b></span>
-            </div>
-        </div>
-
-        <h3 style="margin-bottom: 10px; font-size: 0.9rem; color: #38bdf8;">HISTORY (REAL-TIME)</h3>
-        <div id="history-list"></div>
+    <!-- AI Suggestion Area -->
+    <div class="ai-box">
+        🤖 AI Prediction: <span id="ai-guess">Wait for Next...</span>
     </div>
 
-    <script>
-        const config = {
-            random: "40079dcba93a48769c6ee9d4d4fae23f",
-            signature: "D12108C4F57C549D82B23A91E0FA20AE"
-        };
+    <div id="log" style="height: 30px; margin-bottom: 10px; color: #bbb;">Select a color!</div>
 
-        let stats = JSON.parse(localStorage.getItem('ak_stats')) || { wins: 0, total: 0 };
+    <div class="btn-group">
+        <button id="bGreen" class="green" onclick="placeBet('Green')">Green</button>
+        <button id="bViolet" class="violet" onclick="placeBet('Violet')">Violet</button>
+        <button id="bRed" class="red" onclick="placeBet('Red')">Red</button>
+    </div>
 
-        async function updateData() {
-            const ts = Math.floor(Date.now() / 1000);
-            const body = { typeId: 1, language: 0, random: config.random, signature: config.signature, timestamp: ts };
+    <!-- Trend History Table -->
+    <div class="trend-section">
+        <h4 style="margin-left: 5px;">Trend History</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Result</th>
+                    <th>Color</th>
+                </tr>
+            </thead>
+            <tbody id="trend-body">
+                <!-- Rows will be added here via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
 
-            try {
-                // Fetching both Period and Result History
-                const [issueRes, historyRes] = await Promise.all([
-                    fetch('https://api.bdg88zf.com/api/webapi/GetGameIssue', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) }),
-                    fetch('https://api.bdg88zf.com/api/webapi/GetNoDataLine', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({...body, pageSize: 10}) })
-                ]);
+<script>
+    let balance = 1000;
+    let timeLeft = 30;
+    let selectedColour = null;
+    let periodCount = 2024010101; // Fake Period ID
+    let gameHistory = [];
 
-                const issueData = await issueRes.json();
-                const historyData = await historyRes.json();
+    function startTimer() {
+        setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
 
-                if (issueData.code === 0 && historyData.code === 0) {
-                    const currentIssue = issueData.data.issueNumber;
-                    const list = historyData.data.list;
-
-                    document.getElementById('period-num').innerText = "PERIOD: " + currentIssue;
-                    
-                    // Predict Logic
-                    const lastResult = list[0].number <= 4 ? 'SMALL' : 'BIG';
-                    const prediction = (Math.random() > 0.5) ? 'BIG' : 'SMALL'; // Simplified 2026 logic
-                    
-                    document.getElementById('prediction-text').innerText = prediction;
-                    document.getElementById('conf-fill').style.width = Math.floor(Math.random() * (95 - 75) + 75) + "%";
-                    
-                    // Show History & Win/Loss
-                    renderHistory(list, currentIssue, prediction);
-                }
-            } catch (e) {
-                console.log("API Connection Error");
+            if (timeLeft <= 5) {
+                document.getElementById('log').innerText = "Betting Locked...";
+                disableBtns(true);
             }
+
+            if (timeLeft <= 0) {
+                calculateResult();
+                resetGame();
+            }
+        }, 1000);
+    }
+
+    function placeBet(col) {
+        if (timeLeft <= 5) return;
+        selectedColour = col;
+        document.getElementById('log').innerText = "Bet Placed: " + col;
+    }
+
+    function calculateResult() {
+        const colours = ['Green', 'Red', 'Green', 'Red', 'Violet', 'Red', 'Green'];
+        const winCol = colours[Math.floor(Math.random() * colours.length)];
+        
+        // Win/Loss logic
+        if (selectedColour === winCol) {
+            balance += 20;
+            document.getElementById('log').innerHTML = `<b style="color:#4caf50">WIN! (+₹20)</b>`;
+        } else if (selectedColour != null) {
+            balance -= 10;
+            document.getElementById('log').innerHTML = `<b style="color:#f44336">LOST (-₹10)</b>`;
+        } else {
+            document.getElementById('log').innerText = "Result: " + winCol;
         }
 
-        function renderHistory(list, currentIssue, currentPred) {
-            const container = document.getElementById('history-list');
-            container.innerHTML = "";
-            
-            list.forEach((item, index) => {
-                const actualSize = item.number <= 4 ? 'SMALL' : 'BIG';
-                const savedPred = localStorage.getItem('pred_' + item.issueNumber);
-                
-                let badge = "";
-                if (savedPred) {
-                    const win = savedPred === actualSize;
-                    if (!localStorage.getItem('recorded_' + item.issueNumber)) {
-                        stats.total++;
-                        if (win) stats.wins++;
-                        localStorage.setItem('ak_stats', JSON.stringify(stats));
-                        localStorage.setItem('recorded_' + item.issueNumber, "true");
-                    }
-                    badge = win ? '<span class="win-badge">WIN</span>' : '<span class="loss-badge">LOSS</span>';
-                }
+        document.getElementById('balance').innerText = balance;
+        
+        // Update Trend
+        updateTrendTable(periodCount, winCol);
+        periodCount++;
 
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <span>#${item.issueNumber.slice(-3)}</span>
-                    <span style="font-weight:bold; color:${item.number > 4 ? '#fbbf24' : '#38bdf8'}">${actualSize} (${item.number})</span>
-                    ${badge}
-                `;
-                container.appendChild(div);
-            });
+        // Generate AI Prediction for next round
+        generateAIPrediction(winCol);
+    }
 
-            // Save current prediction for next round check
-            localStorage.setItem('pred_' + currentIssue, currentPred);
-            updateStatsUI();
-        }
+    function updateTrendTable(period, color) {
+        const tbody = document.getElementById('trend-body');
+        const colorHex = color === 'Green' ? '#4caf50' : (color === 'Red' ? '#f44336' : '#9c27b0');
+        
+        const row = `<tr>
+            <td>${period}</td>
+            <td style="color:${colorHex}">${color}</td>
+            <td><span class="dot" style="background:${colorHex}"></span></td>
+        </tr>`;
+        
+        tbody.insertAdjacentHTML('afterbegin', row);
+        
+        // Limit history to 5 rows
+        if(tbody.rows.length > 5) tbody.deleteRow(5);
+    }
 
-        function updateStatsUI() {
-            const acc = stats.total === 0 ? 0 : ((stats.wins / stats.total) * 100).toFixed(1);
-            document.getElementById('acc-val').innerText = acc + "%";
-            document.getElementById('total-val').innerText = stats.total;
-        }
+    function generateAIPrediction(lastWin) {
+        // Simple logic: If last was Red, suggest Green (Pattern flipping)
+        const nextSuggest = (lastWin === 'Red') ? 'Green' : 'Red';
+        const confidence = Math.floor(Math.random() * (99 - 60) + 60); // Fake confidence %
+        document.getElementById('ai-guess').innerText = `${nextSuggest} (${confidence}%)`;
+    }
 
-        function startTimer() {
-            setInterval(() => {
-                const seconds = new Date().getSeconds();
-                const rem = 60 - seconds;
-                document.getElementById('timer').innerText = `00:${rem < 10 ? '0' : ''}${rem}`;
-                if (rem === 59) updateData();
-            }, 1000);
-        }
+    function resetGame() {
+        timeLeft = 30;
+        selectedColour = null;
+        disableBtns(false);
+    }
 
-        // Init
-        updateData();
-        startTimer();
-    </script>
+    function disableBtns(status) {
+        const btns = ['bGreen', 'bViolet', 'bRed'];
+        btns.forEach(id => document.getElementById(id).style.opacity = status ? "0.5" : "1");
+    }
+
+    startTimer();
+</script>
+
 </body>
 </html>
