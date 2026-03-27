@@ -1,164 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prediction Game with Trends</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto Prediction & History</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 20px; }
-        .game-card { background: #1e1e1e; padding: 20px; border-radius: 20px; display: inline-block; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 { color: #00ff00; text-shadow: 0 0 10px #00ff00; font-size: 22px; }
         
-        /* AI Prediction Box */
-        .ai-box { background: #333; padding: 10px; border-radius: 10px; margin: 15px 0; border: 1px dashed #007bff; }
-        #ai-guess { font-weight: bold; color: #00d4ff; text-transform: uppercase; }
+        /* Prediction Card */
+        .card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 255, 0, 0.1);
+        }
+        #period { font-size: 18px; color: cyan; margin-bottom: 10px; }
+        #prediction { font-size: 28px; font-weight: bold; color: yellow; }
 
-        .timer-box { font-size: 28px; color: #ffeb3b; margin: 10px 0; }
-        .balance { font-size: 20px; color: #4caf50; margin-bottom: 15px; }
-        
-        /* Buttons */
-        .btn-group button { width: 90px; height: 45px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; margin: 5px; font-size: 16px; }
-        .green { background: #4CAF50; box-shadow: 0 4px #2e7d32; }
-        .violet { background: #9C27B0; box-shadow: 0 4px #7b1fa2; }
-        .red { background: #F44336; box-shadow: 0 4px #d32f2f; }
-        .btn-group button:active { transform: translateY(2px); box-shadow: none; }
-        
-        /* Trend Table */
-        .trend-section { margin-top: 25px; text-align: left; }
-        table { width: 100%; border-collapse: collapse; background: #252525; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 10px; text-align: center; border-bottom: 1px solid #333; }
-        th { background: #333; color: #aaa; font-size: 12px; }
-        .dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; }
+        /* History Table */
+        .history-container {
+            background: #111;
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th {
+            border-bottom: 2px solid #00ff00;
+            padding: 12px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #222;
+            font-size: 14px;
+        }
+        .win { color: #00ff00; font-weight: bold; }
+        .loss { color: #ff4444; font-weight: bold; }
+        .tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #222;
+        }
     </style>
 </head>
 <body>
 
-<div class="game-card">
-    <div class="balance">Wallet: ₹<span id="balance">1000</span></div>
-    
-    <div class="timer-box">Next Round: <span id="timer">30</span>s</div>
+    <h1>TanMayMods Prediction System</h1>
 
-    <!-- AI Suggestion Area -->
-    <div class="ai-box">
-        🤖 AI Prediction: <span id="ai-guess">Wait for Next...</span>
+    <div class="card">
+        <div id="period">Period: Fetching...</div>
+        <div id="prediction">Wait for Next Period...</div>
     </div>
 
-    <div id="log" style="height: 30px; margin-bottom: 10px; color: #bbb;">Select a color!</div>
-
-    <div class="btn-group">
-        <button id="bGreen" class="green" onclick="placeBet('Green')">Green</button>
-        <button id="bViolet" class="violet" onclick="placeBet('Violet')">Violet</button>
-        <button id="bRed" class="red" onclick="placeBet('Red')">Red</button>
-    </div>
-
-    <!-- Trend History Table -->
-    <div class="trend-section">
-        <h4 style="margin-left: 5px;">Trend History</h4>
+    <div class="history-container">
+        <h3 style="margin: 0; color: #fff;">Last 20 Results History</h3>
         <table>
             <thead>
                 <tr>
                     <th>Period</th>
+                    <th>Predict</th>
                     <th>Result</th>
-                    <th>Color</th>
+                    <th>Status</th>
                 </tr>
             </thead>
-            <tbody id="trend-body">
-                <!-- Rows will be added here via JS -->
+            <tbody id="historyBody">
+                <!-- Rows will be added here -->
             </tbody>
         </table>
     </div>
-</div>
 
-<script>
-    let balance = 1000;
-    let timeLeft = 30;
-    let selectedColour = null;
-    let periodCount = 2024010101; // Fake Period ID
-    let gameHistory = [];
+    <script>
+        let predictionHistory = [];
+        let currentPrediction = "";
+        let lastPeriod = "";
 
-    function startTimer() {
-        setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer').innerText = timeLeft;
-
-            if (timeLeft <= 5) {
-                document.getElementById('log').innerText = "Betting Locked...";
-                disableBtns(true);
-            }
-
-            if (timeLeft <= 0) {
-                calculateResult();
-                resetGame();
-            }
-        }, 1000);
-    }
-
-    function placeBet(col) {
-        if (timeLeft <= 5) return;
-        selectedColour = col;
-        document.getElementById('log').innerText = "Bet Placed: " + col;
-    }
-
-    function calculateResult() {
-        const colours = ['Green', 'Red', 'Green', 'Red', 'Violet', 'Red', 'Green'];
-        const winCol = colours[Math.floor(Math.random() * colours.length)];
-        
-        // Win/Loss logic
-        if (selectedColour === winCol) {
-            balance += 20;
-            document.getElementById('log').innerHTML = `<b style="color:#4caf50">WIN! (+₹20)</b>`;
-        } else if (selectedColour != null) {
-            balance -= 10;
-            document.getElementById('log').innerHTML = `<b style="color:#f44336">LOST (-₹10)</b>`;
-        } else {
-            document.getElementById('log').innerText = "Result: " + winCol;
+        // Function to generate random prediction (Logic from your original script)
+        function generatePrediction() {
+            const sizes = ["BIG", "SMALL"];
+            const colors = ["RED", "GREEN"];
+            const size = sizes[Math.floor(Math.random() * sizes.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            return `${size} (${color})`;
         }
 
-        document.getElementById('balance').innerText = balance;
-        
-        // Update Trend
-        updateTrendTable(periodCount, winCol);
-        periodCount++;
+        // Table update karne ka function
+        function updateHistory(period, predict, actual) {
+            // Check if win or loss
+            // Simple logic: Agar prediction ka pehla word (BIG/SMALL) result se match kare
+            const isWin = predict.split(' ')[0] === actual;
+            const statusText = isWin ? "WIN" : "LOSS";
+            const statusClass = isWin ? "win" : "loss";
 
-        // Generate AI Prediction for next round
-        generateAIPrediction(winCol);
-    }
+            // Add to array
+            predictionHistory.unshift({
+                period: period,
+                predict: predict,
+                actual: actual,
+                status: statusText,
+                class: statusClass
+            });
 
-    function updateTrendTable(period, color) {
-        const tbody = document.getElementById('trend-body');
-        const colorHex = color === 'Green' ? '#4caf50' : (color === 'Red' ? '#f44336' : '#9c27b0');
-        
-        const row = `<tr>
-            <td>${period}</td>
-            <td style="color:${colorHex}">${color}</td>
-            <td><span class="dot" style="background:${colorHex}"></span></td>
-        </tr>`;
-        
-        tbody.insertAdjacentHTML('afterbegin', row);
-        
-        // Limit history to 5 rows
-        if(tbody.rows.length > 5) tbody.deleteRow(5);
-    }
+            // Keep only last 20
+            if (predictionHistory.length > 20) predictionHistory.pop();
 
-    function generateAIPrediction(lastWin) {
-        // Simple logic: If last was Red, suggest Green (Pattern flipping)
-        const nextSuggest = (lastWin === 'Red') ? 'Green' : 'Red';
-        const confidence = Math.floor(Math.random() * (99 - 60) + 60); // Fake confidence %
-        document.getElementById('ai-guess').innerText = `${nextSuggest} (${confidence}%)`;
-    }
+            // Render Table
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = predictionHistory.map(row => `
+                <tr>
+                    <td>${row.period}</td>
+                    <td><span class="tag">${row.predict}</span></td>
+                    <td><span class="tag">${row.actual}</span></td>
+                    <td class="${row.class}">${row.status}</td>
+                </tr>
+            `).join('');
+        }
 
-    function resetGame() {
-        timeLeft = 30;
-        selectedColour = null;
-        disableBtns(false);
-    }
+        // Main Loop (Har 5-10 second mein check karega)
+        async function startSystem() {
+            // Simulation logic (Kyuki real API access restricted ho sakta hai)
+            setInterval(() => {
+                const now = new Date();
+                const periodId = now.getFullYear().toString() + (now.getMonth() + 1) + now.getDate() + now.getHours() + now.getMinutes();
 
-    function disableBtns(status) {
-        const btns = ['bGreen', 'bViolet', 'bRed'];
-        btns.forEach(id => document.getElementById(id).style.opacity = status ? "0.5" : "1");
-    }
+                if (periodId !== lastPeriod) {
+                    // Jab naya period aaye:
+                    if (currentPrediction !== "") {
+                        // Purane prediction ka result dikhao (Randomly simulating result BIG or SMALL)
+                        const results = ["BIG", "SMALL"];
+                        const actualResult = results[Math.floor(Math.random() * results.length)];
+                        updateHistory(lastPeriod, currentPrediction, actualResult);
+                    }
 
-    startTimer();
-</script>
+                    // Naya prediction generate karo
+                    lastPeriod = periodId;
+                    currentPrediction = generatePrediction();
+                    
+                    document.getElementById('period').innerText = "Period: " + periodId;
+                    document.getElementById('prediction').innerText = currentPrediction;
+                }
+            }, 5000); // Har 5 second mein update check
+        }
 
+        // Start the process
+        startSystem();
+    </script>
 </body>
 </html>
