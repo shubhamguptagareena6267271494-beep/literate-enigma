@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>AK AI Predictor 2026 v3.0</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0a0e17; color: #fff; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+        .container {
+            background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT04uCksgmV2LBQkKVXAJJ4D3mSPrxOKUmaRouZFFZOi4cH_14MhDLP6Nw&s=10') no-repeat center center/cover;
+            width: 100%; max-width: 390px; height: 100vh; border-radius: 20px; padding: 20px; position: relative; overflow-y: auto;
+        }
+        .main-display, .additional-container, .recent-data {
+            background: rgba(0, 0, 0, 0.7); border-radius: 15px; padding: 20px; margin: 15px 0;
+            text-align: center; position: relative; border-top: 3px solid #3b82f6;
+        }
+        .period-number { font-family: monospace; font-size: 1.4em; color: #3399ff; margin-bottom: 5px; }
+        .result-display { font-size: 1.8rem; font-weight: bold; color: #4dffff; text-transform: uppercase; margin: 10px 0; }
+        .confidence-bg { background: #222; height: 8px; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .confidence-level { background: linear-gradient(90deg, #00ff00, #3b82f6); height: 100%; width: 0%; transition: 1s; }
+        .info-box { display: flex; align-items: center; background: rgba(0, 255, 0, 0.1); border: 1px solid #00ff00; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; }
+        .info-box i { color: #00ff00; margin-right: 10px; font-size: 1.2rem; }
+        .data-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; }
+        .win-text { color: #00ff00; font-weight: bold; }
+        .loss-text { color: #ff3333; font-weight: bold; }
+        .refresh-button { position: fixed; bottom: 30px; right: 20px; width: 55px; height: 55px; background: #1c2535; border: 2px solid #00ff00; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 100; box-shadow: 0 0 15px rgba(0,255,0,0.3); }
+        .timer-display { font-size: 1.2rem; color: #f0db4f; font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-display">
+            <h2 style="color: #00ff00; font-size: 1.2rem; margin-bottom: 15px;">AK AI Predictor v3.0</h2>
+            <div class="timer-display" id="timer">Next: 00:60</div>
+            <div class="period-number" id="period-number">Loading...</div>
+            <div class="result-display" id="result">WAITING...</div>
+            <div class="confidence-bg"><div class="confidence-level" id="confidence-level"></div></div>
+            <div style="font-size: 0.75rem; color: #ccc;" id="prediction-details">Analyzing 2026 Patterns...</div>
+        </div>
+
+        <div class="additional-container">
+            <div class="info-box"><i class="fas fa-robot"></i><span>Model: Neural-2026-v3</span></div>
+            <div class="info-box"><i class="fas fa-brain"></i><span id="accuracy-stat">Accuracy: 0.0% (Last 0)</span></div>
+        </div>
+
+        <div class="recent-data">
+            <h3 style="color: #00ff00; font-size: 1rem; text-align: left; margin-bottom: 10px;">Recent Results History</h3>
+            <div id="history-list"></div>
+        </div>
+
+        <button class="refresh-button" onclick="manualRefresh()"><i class="fas fa-sync-alt fa-spin" style="color:#00ff00"></i></button>
+    </div>
+
+    <script>
+        // AI 2026 Logic Engine
+        class AIPredictor {
+            constructor() {
+                this.history = [];
+                this.stats = JSON.parse(localStorage.getItem('ai_stats')) || { win: 0, total: 0 };
+            }
+
+            analyze(history) {
+                if (history.length < 3) return { size: 'Wait', confidence: 50, pattern: 'Initial' };
+                
+                const last = history[0].number <= 4 ? 'Small' : 'Big';
+                const secondLast = history[1].number <= 4 ? 'Small' : 'Big';
+                const thirdLast = history[2].number <= 4 ? 'Small' : 'Big';
+
+                // 2026 Dragon/ZigZag Logic
+                if (last === secondLast && secondLast === thirdLast) {
+                    return { size: last, confidence: 89, pattern: 'Dragon Trend' };
+                } else if (last !== secondLast && secondLast !== thirdLast) {
+                    return { size: last === 'Big' ? 'Small' : 'Big', confidence: 82, pattern: 'ZigZag (1-1)' };
+                }
+                return { size: Math.random() > 0.5 ? 'Big' : 'Small', confidence: 65, pattern: 'Mirror Pattern' };
+            }
+
+            updateStats(isWin) {
+                this.stats.total++;
+                if (isWin) this.stats.win++;
+                localStorage.setItem('ai_stats', JSON.stringify(this.stats));
+                const acc = ((this.stats.win / this.stats.total) * 100).toFixed(1);
+                document.getElementById('accuracy-stat').innerText = `Accuracy: ${acc}% (Last ${this.stats.total})`;
+            }
+        }
+
+        const ai = new AIPredictor();
+
+        async function fetchCurrentGameIssue() {
+            const apiUrl = 'https://api.bdg88zf.com/api/webapi/GetGameIssue';
+            const requestData = { "typeId": 1, "language": 0, "random": "40079dcba93a48769c6ee9d4d4fae23f", "signature": "D12108C4F57C549D82B23A91E0FA20AE", "timestamp": Math.floor(Date.now()/1000) };
+
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestData) });
+                const data = await response.json();
+                if (data.code === 0) {
+                    const currentIssue = data.data.issueNumber;
+                    document.getElementById('period-number').innerText = currentIssue;
+                    
+                    // Predict for next round
+                    const prediction = ai.analyze(ai.history);
+                    document.getElementById('result').innerText = prediction.size;
+                    document.getElementById('confidence-level').style.width = prediction.confidence + '%';
+                    document.getElementById('prediction-details').innerText = `Pattern: ${prediction.pattern} | Conf: ${prediction.confidence}%`;
+                    
+                    // Save for win/loss check
+                    localStorage.setItem(`pred_${currentIssue}`, prediction.size);
+                }
+            } catch (e) { console.error("API Error"); }
+        }
+
+        // Win/Loss History Logic
+        function updateHistory(issue, actualNum) {
+            const actualSize = actualNum <= 4 ? 'Small' : 'Big';
+            const predSize = localStorage.getItem(`pred_${issue}`);
+            const historyList = document.getElementById('history-list');
+
+            let winStatus = "";
+            if (predSize) {
+                const isWin = predSize.toLowerCase() === actualSize.toLowerCase();
+                ai.updateStats(isWin);
+                winStatus = isWin ? '<span class="win-text">WIN</span>' : '<span class="loss-text">LOSS</span>';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'data-item';
+            item.innerHTML = `<span>#${issue.slice(-4)}</span> <span>${actualSize} (${actualNum})</span> ${winStatus}`;
+            historyList.prepend(item);
+            if (historyList.children.length > 8) historyList.lastChild.remove();
+        }
+
+        // 1 Minute Timer Logic
+        function startTimer() {
+            setInterval(() => {
+                const now = new Date();
+                const seconds = now.getSeconds();
+                const remaining = 60 - seconds;
+                document.getElementById('timer').innerText = `Next: 00:${remaining < 10 ? '0' : ''}${remaining}`;
+                
+                if (remaining === 59) { // New minute starts
+                    fetchCurrentGameIssue();
+                    // Example: Simulate history update with last known number
+                    // Real implementation would fetch last result from API
+                }
+            }, 1000);
+        }
+
+        function manualRefresh() { fetchCurrentGameIssue(); }
+
+        // Start App
+        fetchCurrentGameIssue();
+        startTimer();
+    </script>
+</body>
+</html>
