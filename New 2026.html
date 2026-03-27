@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PHOENIX ULTRA | 2026 NEURAL RECOVERY</title>
+    <title>PHOENIX ULTRA PRO | FIXED 2026</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,7 +12,7 @@
             --primary: #8b5cf6;
             --accent: #ec4899;
             --bg: #0f172a;
-            --card: rgba(30, 41, 59, 0.8);
+            --card: rgba(30, 41, 59, 0.9);
             --text: #f8fafc;
             --success: #10b981;
             --danger: #ef4444;
@@ -24,215 +24,155 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding-bottom: 80px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .container { width: 100%; max-width: 500px; }
 
         .glass-card {
             background: var(--card);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: center;
         }
 
-        .prediction-header { display: flex; justify-content: space-between; align-items: center; }
-        
-        .level-indicator {
-            padding: 4px 12px;
+        .level-badge {
+            display: inline-block;
+            padding: 5px 15px;
             border-radius: 50px;
+            font-size: 12px;
             font-weight: bold;
-            font-size: 14px;
+            margin-bottom: 10px;
         }
 
-        .lvl-1 { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-        .lvl-2 { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-        .lvl-3 { background: rgba(239, 68, 68, 0.2); color: var(--danger); animation: pulse 1s infinite; }
+        .lvl-1 { background: var(--success); color: white; }
+        .lvl-2 { background: var(--warning); color: black; }
+        .lvl-3 { background: var(--danger); color: white; animation: blink 0.8s infinite; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        .big-text { font-size: 54px; font-weight: 800; text-align: center; margin: 15px 0; color: var(--primary); text-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
-        .lucky-circle { width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto; }
-
-        .history-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .predict-text { font-size: 50px; font-weight: 800; color: var(--primary); margin: 10px 0; }
+        .lucky-num { width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 10px auto; font-size: 20px; font-weight: bold; }
         
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 100; }
-        .nav-item { font-size: 20px; opacity: 0.5; cursor: pointer; }
-        .nav-item.active { opacity: 1; color: var(--primary); }
-
-        .status-bar { height: 6px; background: #334155; border-radius: 10px; overflow: hidden; margin: 15px 0; }
-        .status-fill { height: 100%; width: 0%; background: var(--primary); transition: 1s ease; }
+        #status-msg { font-size: 12px; color: var(--warning); margin-top: 10px; }
+        .history-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <i class="fas fa-microchip" style="color: var(--primary); font-size: 24px;"></i>
-        <h2 style="margin: 0;">PHOENIX <span style="color: var(--primary);">ULTRA 2026</span></h2>
-    </div>
+    <h2 style="text-align: center;"><i class="fas fa-fire"></i> PHOENIX <span style="color:var(--primary)">ULTRA</span></h2>
 
-    <!-- Main Prediction Card -->
     <div class="glass-card">
-        <div class="prediction-header">
-            <span>PERIOD: <b id="nextPeriod">----</b></span>
-            <div id="levelBadge" class="level-indicator lvl-1">LEVEL 1</div>
-        </div>
-        
-        <div class="big-text" id="mainPredict">WAITING...</div>
-        
-        <p style="text-align: center; opacity: 0.7; margin: 0;">HIGH PROBABILITY NUMBER</p>
-        <div class="lucky-circle" id="luckyNum">?</div>
-
-        <div class="status-bar"><div id="confFill" class="status-fill"></div></div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span>AI CONFIDENCE: <b id="confText">0%</b></span>
-            <span>SYSTEM: <b id="sysMode">NEURAL</b></span>
-        </div>
+        <div id="lvlBadge" class="level-badge lvl-1">LEVEL 1</div>
+        <div style="font-size: 14px; opacity: 0.8;">PERIOD: <span id="periodText">----</span></div>
+        <div class="predict-text" id="predictResult">ANALYZING...</div>
+        <div>LUCKY NUMBER</div>
+        <div class="lucky-num" id="luckyResult">?</div>
+        <div id="status-msg">Connecting to AI Server...</div>
     </div>
 
-    <!-- Analytics Chart -->
-    <div class="glass-card">
-        <h4 style="margin-top: 0;"><i class="fas fa-chart-line"></i> Market Flow Analysis</h4>
-        <canvas id="trendChart" style="height: 150px;"></canvas>
+    <div class="glass-card" style="padding: 10px;">
+        <h4 style="margin: 10px;">RECENT RECOVERY HISTORY</h4>
+        <div id="historyLog"></div>
     </div>
-
-    <!-- History -->
-    <h4 style="margin-left: 10px;">RECENT RECOVERY LOG</h4>
-    <div id="historyLog" class="glass-card" style="padding: 0;"></div>
-</div>
-
-<div class="nav-bar">
-    <i class="fas fa-home nav-item active"></i>
-    <i class="fas fa-bolt nav-item"></i>
-    <i class="fas fa-history nav-item"></i>
 </div>
 
 <script>
-    const API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?ts";
+    // FIXED API URL with Proxy to avoid CORS issues
+    const API_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?ts=" + Date.now());
+    
     let lastPeriod = "";
     let currentLevel = 1;
-    let trendChart;
-    let predictionHistory = [];
+    let myPrediction = null;
 
-    async function fetchMarket() {
+    async function startSystem() {
+        const msg = document.getElementById('status-msg');
         try {
-            const response = await fetch(`${API_URL}=${Date.now()}`);
-            const data = await response.json();
-            const list = data.data.list;
-            const latest = list[0];
+            // Fetching data through Proxy
+            const response = await fetch(API_URL);
+            const rawData = await response.json();
+            const data = JSON.parse(rawData.contents);
+            
+            const latest = data.data.list[0];
             const nextP = (parseInt(latest.issue) + 1).toString();
 
             if (nextP !== lastPeriod) {
-                // Check if previous prediction won
-                if (predictionHistory.length > 0) {
-                    const lastPred = predictionHistory[0];
+                msg.innerText = "Data Synced. New Prediction Ready!";
+                
+                // Check WIN/LOSS
+                if (myPrediction) {
                     const actualSize = parseInt(latest.number) <= 4 ? 'SMALL' : 'BIG';
+                    updateHistory(latest.issue, latest.number, actualSize);
                     
-                    if (lastPred.guess === actualSize) {
-                        currentLevel = 1; // Reset on Win
+                    if (myPrediction === actualSize) {
+                        currentLevel = 1;
                     } else {
-                        currentLevel = currentLevel >= 3 ? 1 : currentLevel + 1; // Increment on Loss
+                        currentLevel = currentLevel >= 3 ? 1 : currentLevel + 1;
                     }
-                    updateLog(latest, lastPred.guess);
                 }
 
                 lastPeriod = nextP;
-                processNeuralLogic(list, nextP);
+                generatePrediction(data.data.list, nextP);
             }
-        } catch (e) { console.error("Sync Error"); }
+        } catch (error) {
+            msg.innerText = "Error: Use Chrome or Refresh Page.";
+            console.error(error);
+        }
     }
 
-    function processNeuralLogic(data, nextP) {
-        const last10 = data.slice(0, 10).map(i => parseInt(i.number));
-        const lastSize = last10[0] <= 4 ? 'SMALL' : 'BIG';
+    function generatePrediction(list, nextP) {
+        const lastFive = list.slice(0, 5).map(i => parseInt(i.number) <= 4 ? 'S' : 'B');
+        const bCount = lastFive.filter(x => x === 'B').length;
         
         let guess = "";
         let lucky = 0;
-        let confidence = 0;
 
-        // 2026 RECOVERY LOGIC (LEVEL 3 FOCUS)
+        // 2026 Level 3 Logic
         if (currentLevel === 3) {
-            // High probability reversal check
-            guess = lastSize === 'BIG' ? 'SMALL' : 'BIG';
+            guess = lastFive[0] === 'B' ? 'SMALL' : 'BIG'; // Strong Reversal
             lucky = guess === 'BIG' ? 7 : 3;
-            confidence = 98;
-            document.getElementById('sysMode').innerText = "RECOVERY";
         } else {
-            // Trend following for Level 1 & 2
-            guess = lastSize;
+            guess = bCount >= 3 ? 'BIG' : 'SMALL'; // Trend Follow
             lucky = guess === 'BIG' ? 8 : 2;
-            confidence = currentLevel === 2 ? 85 : 72;
-            document.getElementById('sysMode').innerText = "NEURAL";
-        }
-
-        // Apply 2026 Gap Analysis (Missing Number)
-        const missing = [0,1,2,3,4,5,6,7,8,9].filter(n => !last10.slice(0,5).includes(n));
-        if (missing.length > 0) {
-            if (guess === "BIG" && missing.find(n => n >= 5)) lucky = missing.find(n => n >= 5);
-            if (guess === "SMALL" && missing.find(n => n <= 4)) lucky = missing.find(n => n <= 4);
         }
 
         // Update UI
-        document.getElementById('nextPeriod').innerText = nextP.slice(-4);
-        document.getElementById('mainPredict').innerText = guess;
-        document.getElementById('luckyNum').innerText = lucky;
-        document.getElementById('confText').innerText = confidence + "%";
-        document.getElementById('confFill').style.width = confidence + "%";
+        document.getElementById('periodText').innerText = nextP.slice(-4);
+        document.getElementById('predictResult').innerText = guess;
+        document.getElementById('luckyResult').innerText = lucky;
         
-        const badge = document.getElementById('levelBadge');
-        badge.className = `level-indicator lvl-${currentLevel}`;
-        badge.innerText = `LEVEL ${currentLevel}`;
+        const badge = document.getElementById('lvlBadge');
+        badge.innerText = "LEVEL " + currentLevel;
+        badge.className = "level-badge lvl-" + currentLevel;
 
-        predictionHistory.unshift({ period: nextP, guess: guess, lucky: lucky });
-        updateChart(data);
+        myPrediction = guess;
     }
 
-    function updateChart(data) {
-        const ctx = document.getElementById('trendChart').getContext('2d');
-        const labels = data.slice(0, 8).map(i => i.issue.slice(-3)).reverse();
-        const vals = data.slice(0, 8).map(i => i.number).reverse();
-
-        if (trendChart) trendChart.destroy();
-        trendChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: vals,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-        });
-    }
-
-    function updateLog(latest, lastGuess) {
+    function updateHistory(issue, num, size) {
         const log = document.getElementById('historyLog');
-        const actualSize = parseInt(latest.number) <= 4 ? 'SMALL' : 'BIG';
-        const isWin = lastGuess === actualSize;
-        
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-            <span>#${latest.issue.slice(-3)}</span>
-            <span style="font-weight:bold;">${latest.number} (${actualSize})</span>
-            <span style="color: ${isWin ? 'var(--success)' : 'var(--danger)'}">${isWin ? 'WIN' : 'LOSS'}</span>
+        const isWin = myPrediction === size;
+        const row = document.createElement('div');
+        row.className = 'history-row';
+        row.innerHTML = `
+            <span>#${issue.slice(-3)}</span>
+            <span>${num} (${size})</span>
+            <span style="color:${isWin ? 'var(--success)' : 'var(--danger)'}">${isWin ? 'WIN' : 'LOSS'}</span>
         `;
-        log.prepend(div);
+        log.prepend(row);
         if (log.children.length > 5) log.lastChild.remove();
     }
 
-    setInterval(fetchMarket, 3000);
-    fetchMarket();
+    // Run every 5 seconds
+    setInterval(startSystem, 5000);
+    startSystem();
 </script>
 
 </body>
