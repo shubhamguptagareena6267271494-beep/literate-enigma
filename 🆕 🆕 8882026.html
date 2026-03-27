@@ -1,165 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auto Prediction & History</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            background: #000;
-            color: #00ff00;
-            padding: 20px;
-            margin: 0;
-        }
-        h1 { color: #00ff00; text-shadow: 0 0 10px #00ff00; font-size: 22px; }
-        
-        /* Prediction Card */
-        .card {
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0, 255, 0, 0.1);
-        }
-        #period { font-size: 18px; color: cyan; margin-bottom: 10px; }
-        #prediction { font-size: 28px; font-weight: bold; color: yellow; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prediction System</title>
 
-        /* History Table */
-        .history-container {
-            background: #111;
-            border-radius: 15px;
-            padding: 15px;
-            border: 1px solid #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th {
-            border-bottom: 2px solid #00ff00;
-            padding: 12px;
-            font-size: 14px;
-            color: #aaa;
-        }
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #222;
-            font-size: 14px;
-        }
-        .win { color: #00ff00; font-weight: bold; }
-        .loss { color: #ff4444; font-weight: bold; }
-        .tag {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            background: #222;
-        }
-    </style>
+<style>
+body{
+    background:#0f172a;
+    color:white;
+    font-family:Arial, sans-serif;
+    text-align:center;
+    padding:20px;
+}
+
+.box{
+    background:#1e293b;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+#prediction{
+    font-size:20px;
+    margin-top:10px;
+}
+
+#status{
+    font-size:22px;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+#history{
+    margin-top:20px;
+    text-align:left;
+    max-height:400px;
+    overflow:auto;
+}
+
+.history-item{
+    padding:6px;
+    border-bottom:1px solid #333;
+}
+.win{
+    color:lime;
+}
+.loss{
+    color:red;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    background:#22c55e;
+    color:black;
+    font-weight:bold;
+}
+</style>
 </head>
+
 <body>
 
-    <h1>TanMayMods Prediction System</h1>
+<div class="box">
+    <h2>Next Prediction</h2>
+    <p id="prediction">Waiting...</p>
+    <p id="status"></p>
+    <button onclick="startPrediction()">Generate Prediction</button>
+</div>
 
-    <div class="card">
-        <div id="period">Period: Fetching...</div>
-        <div id="prediction">Wait for Next Period...</div>
-    </div>
+<div class="box">
+    <h3>Last 20 History</h3>
+    <div id="history"></div>
+</div>
 
-    <div class="history-container">
-        <h3 style="margin: 0; color: #fff;">Last 20 Results History</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Period</th>
-                    <th>Predict</th>
-                    <th>Result</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="historyBody">
-                <!-- Rows will be added here -->
-            </tbody>
-        </table>
-    </div>
+<script>
 
-    <script>
-        let predictionHistory = [];
-        let currentPrediction = "";
-        let lastPeriod = "";
+let historyData = [];
+let lastPredictionData = null;
 
-        // Function to generate random prediction (Logic from your original script)
-        function generatePrediction() {
-            const sizes = ["BIG", "SMALL"];
-            const colors = ["RED", "GREEN"];
-            const size = sizes[Math.floor(Math.random() * sizes.length)];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            return `${size} (${color})`;
+// Prediction Generate
+function generatePrediction(){
+    const number = Math.floor(Math.random()*10);
+    const size = number >=5 ? "BIG" : "SMALL";
+
+    lastPredictionData = {
+        number:number,
+        size:size
+    };
+
+    return number;
+}
+
+// Save History (max 20)
+function saveToHistory(text, isWin){
+
+    historyData.unshift({text, isWin});
+
+    if(historyData.length > 20){
+        historyData.pop();
+    }
+
+    const historyBox = document.getElementById("history");
+    historyBox.innerHTML = "";
+
+    historyData.forEach(item=>{
+        const div = document.createElement("div");
+        div.classList.add("history-item");
+        div.classList.add(item.isWin ? "win" : "loss");
+        div.innerHTML = item.text;
+        historyBox.appendChild(div);
+    });
+}
+
+// Start Prediction
+function startPrediction(){
+
+    const predictedNumber = generatePrediction();
+    document.getElementById("prediction").innerHTML =
+        "Predicted Number: " + predictedNumber;
+
+    document.getElementById("status").innerHTML = "Waiting for result...";
+    document.getElementById("status").style.color = "white";
+
+    // ⬇️ Yahan apni API laga sakte ho
+    // Example dummy result after 3 sec
+    setTimeout(()=>{
+
+        const actualNumber = Math.floor(Math.random()*10);
+
+        let win = false;
+        if(lastPredictionData.number === actualNumber){
+            win = true;
         }
 
-        // Table update karne ka function
-        function updateHistory(period, predict, actual) {
-            // Check if win or loss
-            // Simple logic: Agar prediction ka pehla word (BIG/SMALL) result se match kare
-            const isWin = predict.split(' ')[0] === actual;
-            const statusText = isWin ? "WIN" : "LOSS";
-            const statusClass = isWin ? "win" : "loss";
+        let statusText = win ? "WIN 🤑" : "LOSS 😢";
+        let statusColor = win ? "lime" : "red";
 
-            // Add to array
-            predictionHistory.unshift({
-                period: period,
-                predict: predict,
-                actual: actual,
-                status: statusText,
-                class: statusClass
-            });
+        document.getElementById("status").innerHTML = statusText;
+        document.getElementById("status").style.color = statusColor;
 
-            // Keep only last 20
-            if (predictionHistory.length > 20) predictionHistory.pop();
+        saveToHistory(
+            `Pred: ${lastPredictionData.number} | Result: ${actualNumber} → ${statusText}`,
+            win
+        );
 
-            // Render Table
-            const tbody = document.getElementById('historyBody');
-            tbody.innerHTML = predictionHistory.map(row => `
-                <tr>
-                    <td>${row.period}</td>
-                    <td><span class="tag">${row.predict}</span></td>
-                    <td><span class="tag">${row.actual}</span></td>
-                    <td class="${row.class}">${row.status}</td>
-                </tr>
-            `).join('');
-        }
+    },3000);
+}
 
-        // Main Loop (Har 5-10 second mein check karega)
-        async function startSystem() {
-            // Simulation logic (Kyuki real API access restricted ho sakta hai)
-            setInterval(() => {
-                const now = new Date();
-                const periodId = now.getFullYear().toString() + (now.getMonth() + 1) + now.getDate() + now.getHours() + now.getMinutes();
+</script>
 
-                if (periodId !== lastPeriod) {
-                    // Jab naya period aaye:
-                    if (currentPrediction !== "") {
-                        // Purane prediction ka result dikhao (Randomly simulating result BIG or SMALL)
-                        const results = ["BIG", "SMALL"];
-                        const actualResult = results[Math.floor(Math.random() * results.length)];
-                        updateHistory(lastPeriod, currentPrediction, actualResult);
-                    }
-
-                    // Naya prediction generate karo
-                    lastPeriod = periodId;
-                    currentPrediction = generatePrediction();
-                    
-                    document.getElementById('period').innerText = "Period: " + periodId;
-                    document.getElementById('prediction').innerText = currentPrediction;
-                }
-            }, 5000); // Har 5 second mein update check
-        }
-
-        // Start the process
-        startSystem();
-    </script>
 </body>
 </html>
